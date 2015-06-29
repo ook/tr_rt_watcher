@@ -2,7 +2,7 @@ class CreateTravels < ActiveRecord::Migration
   def change
     create_table :travels do |t|
       t.datetime :appear_at
-      t.json :times
+      t.text   :times, array: true, default: []
       t.string :num
       t.string :term
       t.string :mission
