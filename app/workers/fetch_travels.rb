@@ -14,7 +14,7 @@ class FetchTravels
     @tr.next(from: from, to: to)
     @tr.trains.each do |train|
       t = Travel.add_travel(train)
-      puts t
+      puts t.inspect
     end
     FetchTravels.perform_in(1.minute)
   end
