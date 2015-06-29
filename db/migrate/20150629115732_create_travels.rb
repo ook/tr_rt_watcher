@@ -1,7 +1,7 @@
 class CreateTravels < ActiveRecord::Migration
   def change
     create_table :travels do |t|
-      t.dateime :appear_at
+      t.datetime :appear_at
       t.json :times
       t.string :num
       t.string :term
