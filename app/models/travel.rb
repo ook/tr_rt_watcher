@@ -14,4 +14,17 @@ class Travel < ActiveRecord::Base
       travel
     end
   end
+
+  def max_delta
+    real_times = times.map { |t| Time.parse(t) }
+    min = real_times.min
+    max = real_times.max
+    (max - min).to_i / 60
+  end
+
+  def final_delta
+    first_time = Time.parse(times[0])
+    last_time  = Time.parse(times[-1])
+    (last_time - first_time).to_i / 60
+  end
 end
