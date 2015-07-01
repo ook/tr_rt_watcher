@@ -23,6 +23,7 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 
 gem 'transilien_realtime', '~> 0.3.2'
 gem 'sidekiq', '~> 3.4.1'
+gem 'gtfs', '~> 0.2.4'
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
