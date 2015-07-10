@@ -11,20 +11,26 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150629115732) do
+ActiveRecord::Schema.define(version: 20150706110019) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "travels", force: :cascade do |t|
-    t.datetime "appear_at"
-    t.text     "times",      default: [],              array: true
-    t.string   "num"
+    t.datetime "theorically_enter_at"
+    t.text     "times",                default: [],              array: true
+    t.string   "num",                               null: false
     t.string   "term"
-    t.string   "mission"
-    t.string   "from"
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.string   "mission",                           null: false
+    t.string   "stop_id",                           null: false
+    t.string   "status"
+    t.string   "ligne"
+    t.string   "route"
+    t.datetime "created_at",                        null: false
+    t.datetime "updated_at",                        null: false
+    t.string   "date_str",                          null: false
   end
+
+  add_index "travels", ["date_str"], name: "index_travels_on_date_str", using: :btree
 
 end

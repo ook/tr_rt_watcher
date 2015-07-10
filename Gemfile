@@ -36,6 +36,7 @@ gem 'gtfs', '~> 0.2.4'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
+  gem 'pry'
   gem 'byebug'
 
   # Access an IRB console on exception pages or by using <%= console %> in views
