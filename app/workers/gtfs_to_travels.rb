@@ -1,5 +1,6 @@
 require 'gtfs'
 require 'ostruct'
+require 'set'
 
 class GtfsToTravels
   include Sidekiq::Worker
@@ -81,16 +82,20 @@ class GtfsToTravels
 
     puts "Collecting routes…"
     @routes = @source.routes.select { |r| short_names.include?(r.short_name) }
-    route_ids = @routes.map(&:id)
+    route_ids = Set.new(@routes.map(&:id))
     puts "Routes done."
 
     puts "Collecting trips…"
-    @trips = @source.trips.select { |t| route_ids.include?(t.route_id) }
+    services_ids = Set.new
+    services_ids.merge(@dates_by_service.keys)
+    services_ids.merge(@added_dates_by_service.keys)
+    services_ids.merge(@removed_dates_by_service.keys)
+    @trips = @source.trips.select { |t| services_ids.include?(t.service_id) }
     trip_ids = @trips.map(&:id)
     puts "Trips done."
 
-    service_ids = @trips.map(&:service_id)
-    puts "Service_ids collected."
+    #service_ids = @trips.map(&:service_id)
+    #puts "Service_ids collected."
 
     puts "Collecting stop_times…"
     @stop_times = @source.stop_times.select { |st| trip_ids.include?(st.trip_id) }
@@ -123,6 +128,7 @@ class GtfsToTravels
       puts "#{index} NEXT STOP TIMES:  #{st.inspect} ======================"
       trip  = @trips.find { |t| t.id == st.trip_id }
       route = @routes.find { |r| r.id == trip.route_id }
+      next unless route
       os = OpenStruct.new
       os.ligne = route.short_name
       os.route = route.long_name
@@ -148,7 +154,6 @@ class GtfsToTravels
         end
       end
       puts "#{index} - Added services - #{os.inspect}"
-      binding.pry
       Array(@added_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
         os.status = 'GTFS:ADD'
         os.date_str = date_str
@@ -163,7 +168,6 @@ class GtfsToTravels
           Travel.create(trv)
           puts "#{index} - #{inner_index} Ok (created)"
         end
-        binding.pry
         puts
       end
       Array(@removed_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
