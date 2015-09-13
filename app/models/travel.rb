@@ -4,7 +4,6 @@ class Travel < ActiveRecord::Base
     def add_travel(train:, stop:)
       stop_id = "StopPoint:DUA#{stop[0..-2]}"
       travel  = Travel.where(stop_id: stop_id, num: train.numero, date_str: Time.now.strftime('%Y%m%d')).first
-      binding.pry
       unless travel
         travel = new
         travel.num     = train.numero
