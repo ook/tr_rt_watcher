@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150706110019) do
+ActiveRecord::Schema.define(version: 20150629115732) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,9 +26,10 @@ ActiveRecord::Schema.define(version: 20150706110019) do
     t.string   "status"
     t.string   "ligne"
     t.string   "route"
+    t.string   "date_str",                          null: false
+    t.integer  "stop_sequence",                     null: false
     t.datetime "created_at",                        null: false
     t.datetime "updated_at",                        null: false
-    t.string   "date_str",                          null: false
   end
 
   add_index "travels", ["date_str"], name: "index_travels_on_date_str", using: :btree

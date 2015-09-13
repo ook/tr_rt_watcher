@@ -10,8 +10,11 @@ class CreateTravels < ActiveRecord::Migration
       t.string :status
       t.string :ligne
       t.string :route
+      t.string :date_str, null: false
+      t.integer :stop_sequence, precision: 0, null: false
 
       t.timestamps null: false
     end
+    add_index :travels, :date_str
   end
 end
