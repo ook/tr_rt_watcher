@@ -6,7 +6,8 @@ class GtfsToTravels
 
   GTFS_URL = 'https://ressources.data.sncf.com/api/datasets/1.0/sncf-transilien-gtfs/attachments/export_tn_gtfs_last_zip/'
 
-  ALL_KNOWN_SHORT_NAMES = %w(A B C D E H J K L N P R T4 U)
+  #ALL_KNOWN_SHORT_NAMES = %w(A B C D E H J K L N P R T4 U)
+  ALL_KNOWN_SHORT_NAMES = %w(J)
   DAYS = %w(sunday monday tuesday wednesday thursday friday saturday)
 
   def extract_date(date, time)
@@ -25,38 +26,57 @@ class GtfsToTravels
     trip_id[5..-1].to_i.to_s
   end
 
-  def build_dates_for_services
-    start_date = Time.now.beginning_of_month.strftime('%Y%m%d')
-    end_date = (Time.now + 1.month).end_of_month.strftime('%Y%m%d')
+  def build_dates_for_services(start_date = @start_date, end_date = @end_date)
     calendars = @source.calendars.select do |c|
       (c.start_date >= start_date && c.end_date <= start_date) ||
       (c.end_date >= end_date && c.start_date <= end_date )
     end
     services_id = calendars.map(&:service_id)
-    calendars_dates = @source.calendar_dates.select { |cd| services_id.include?(cd.service_id) }
-    s_by_d = {}
-    calendars.map do |c|
+    normal_s_by_d = {}
+    calendars.each do |c|
       date_start = Date.parse(c.start_date)
       date_end   = Date.parse(c.end_date)
       (date_start..date_end).to_a.each do |date|
         next unless '1' == c.send(DAYS[date.wday])
         date_str = date.strftime('%Y%m%d')
-        next if date_str < start_date || date_str > end_date
-        s_by_d[c.service_id] ||= []
-        s_by_d[c.service_id] << date_str
+        next if date_str < start_date || date_str > end_date
+        normal_s_by_d[c.service_id] ||= []
+        normal_s_by_d[c.service_id] << date_str
       end
     end
-    s_by_d
+
+    added_s_by_d = {}
+    removed_s_by_d = {}
+    calendars_dates = @source.calendar_dates.select { |cd| services_id.include?(cd.service_id) }
+    calendars_dates.each do |c|
+      next if c.date < start_date || c.date > end_date
+      target = c.exception_type == '1' ? added_s_by_d : removed_s_by_d
+      target[c.service_id] ||= []
+      target[c.service_id] << c.date
+    end
+    @added_dates_by_service = added_s_by_d
+    @removed_dates_by_service = removed_s_by_d
+
+    normal_s_by_d
   end
 
-  def perform(short_names = ALL_KNOWN_SHORT_NAMES)
+  def perform(short_names = ALL_KNOWN_SHORT_NAMES,
+              start_date = Time.now.strftime('%Y%m%d'),
+              end_date = (Time.now + 7.days).strftime('%Y%m%d'))
+    perform_start = Time.now
+    puts "==== Will pump GTFS for commercials #{short_names.inspect} from #{start_date} to #{end_date}"
     puts short_names.inspect
+
+    @start_date = start_date
+    @end_date = end_date
+
     raise ArgumentError, "short_names: named arg SHOULD be an Array of String" unless short_names.is_a?(Array)
     puts "Loading GTFS: #{GTFS_URL}"
     @source = GTFS::Source.build(GTFS_URL)
     puts "Loading done."
     puts "Building services."
-    @service_by_dates = build_dates_for_services
+    @dates_by_service = build_dates_for_services
+    puts @dates_by_service.inspect
     puts "Services done."
 
     puts "Collecting routes…"
@@ -96,45 +116,11 @@ class GtfsToTravels
 #@stop_id="StopPoint:DUA8738184", @stop_sequence="0", @stop_headsign="", @pickup_type="0", @drop_off_type="1">
 ##<GTFS::Calendar:0x007fc1a22702e8 @service_id="11752", @monday="1", @tuesday="1", @wednesday="1", @thursday="1", @friday="1",
 #@saturday="0", @sunday="0", @start_date="20150715", @end_date="20150731">
-    #@routes.each do |r|
-    #  puts r.inspect
-    #  @trips.select { |t| t.route_id == r.id }.each do |t|
-    #    puts t.inspect
-    #    @stop_times.select { |st| st.trip_id = t.id }.each do |st|
-    #      puts st.inspect
-    #      cals = @calendars.select { |c| c.service_id == t.service_id }
-    #      cals.each do |c|
-    ##        puts c.inspect
-    #        os = OpenStruct.new
-    #        os.ligne = r.short_name
-    #        os.route = r.long_name
-    #        os.mission = t.headsign
-    #        os.stop_point = 
-    #        os.stop_id = st.stop_id
-    #        os.num = extract_num(t.id)
-    #        start_date = Date.parse(c.start_date)
-    #        end_date   = Date.parse(c.end_date)
-    #        (start_date..end_date).to_a.each do |date|
-    #          next unless '1' == c.send(DAYS[date.wday])
-    #          travel = os.dup
-    #          travel.theorically_enter_at = extract_date(date, st.arrival_time)
-    #          travel.date_str = date.strftime('%Y%m%d')
-    #          #travel.exit_at = extract_date(date, st.departure_time)
-    #          puts "travel h: #{travel.to_h.inspect}"
-    #          tr = Travel.where(stop_point: travel.stop_point, date_str: travel.date_str, num: travel.num).first
-    #          if tr
-    #            tr.update_attributes!(travel.to_h)
-    #          else
-    #            Travel.create!(travel.to_h)
-    #          end
-    #        end
-    #      end
-    #    end
-    #  end
-    #end
     
     puts "Building Travels…"
-    @stop_times.each do |st|
+    next_week = Time.now + 9.days
+    @stop_times.each_with_index do |st, index|
+      puts "#{index} NEXT STOP TIMES:  #{st.inspect} ======================"
       trip  = @trips.find { |t| t.id == st.trip_id }
       route = @routes.find { |r| r.id == trip.route_id }
       os = OpenStruct.new
@@ -143,21 +129,59 @@ class GtfsToTravels
       os.mission = trip.headsign
       os.stop_id = st.stop_id
       os.num = extract_num(trip.id)
-      #start_date = Date.parse(c.start_date)
-      #end_date   = Date.parse(c.end_date)
-      puts trip.service_id
-      Array(@service_by_dates[trip.service_id]).each do |date_str|
+      os.stop_sequence = st.stop_sequence.to_i
+      os.status = 'GTFS:STD'
+      puts "#{index} - Normal service - #{os.inspect}"
+      Array(@dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
         os.date_str = date_str
         os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
         trv  = os.to_h
+        puts "#{index} - #{inner_index} TRV=#{trv.inspect}"
         travel = Travel.where(stop_id: trv[:stop_id], date_str: trv[:date_str], num: trv[:num]).first
         if travel
-          puts "ALREADY written"
+          puts "#{index} - #{inner_index} ALREADY written"
         else
           Travel.create(trv)
-          puts "Ok"
+          puts trv.inspect
+          puts "#{index} - #{inner_index} Ok"
+          raise 'FUCK' if trv[:theorically_enter_at] > next_week
         end
       end
+      puts "#{index} - Added services - #{os.inspect}"
+      binding.pry
+      Array(@added_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
+        os.status = 'GTFS:ADD'
+        os.date_str = date_str
+        os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
+        trv  = os.to_h
+        puts "#{index} - #{inner_index} TRV=#{trv.inspect}"
+        travel = Travel.where(stop_id: trv[:stop_id], date_str: trv[:date_str], num: trv[:num]).first
+        if travel
+          travel.update_attributes!(trv)
+          puts "#{index} - #{inner_index} Ok (updated)"
+        else
+          Travel.create(trv)
+          puts "#{index} - #{inner_index} Ok (created)"
+        end
+        binding.pry
+        puts
+      end
+      Array(@removed_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
+        os.status = 'GTFS:DEL'
+        os.date_str = date_str
+        os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
+        trv  = os.to_h
+        puts "#{index} - #{inner_index} TRV=#{trv.inspect}"
+        travel = Travel.where(stop_id: trv[:stop_id], date_str: trv[:date_str], num: trv[:num]).first
+        if !travel
+          binding.pry
+          puts "CAN’T FIND THAT TRAVEL to update! #{os.inspect} #{trv.inspect}"
+        else
+          travel.update_attributes!(trv)
+          puts "#{index} - #{inner_index} Ok"
+        end
+      end
+      puts "#{index} END OF THAT STOP TIME===================="
     end
 
 
@@ -166,6 +190,8 @@ class GtfsToTravels
     puts
     puts
     puts GC.stat
+
+    puts "==== FINISHED PUMP: #{short_names.inspect} from #{start_date} to #{end_date} -- #{Time.now - perform_start}s"
 
     puts travels.inspect
     puts travels.length
