@@ -3,12 +3,17 @@ class Travel < ActiveRecord::Base
   class << self
     def add_travel(train:, stop:)
       stop_id = "StopPoint:DUA#{stop[0..-2]}"
-      travel  = Travel.where(stop_id: stop_id, num: train.numero, date_str: Time.now.strftime('%Y%m%d')).first
+      date_str = Time.now.strftime('%Y%m%d')
+      travel  = Travel.where(stop_id: stop_id, num: train.numero, date_str: date_str).first
       unless travel
         travel = new
         travel.num     = train.numero
         travel.mission = train.mission
         travel.term    = train.terminus
+
+        travel.date_str = date_str
+        travel.stop_sequence = -1
+        travel.stop_id = "StopPoint:DUA#{stop[0..-2]}"
         travel.status  = 'FETCH:DISCOVER'
       end
       travel.times << train.departure_at
