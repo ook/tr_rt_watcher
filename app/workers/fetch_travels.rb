@@ -15,6 +15,8 @@ class FetchTravels
     @tr.trains.each do |train|
       t = Travel.add_travel(train: train, stop: from)
       puts t.inspect
+      #puts t.max_delta
+      #puts t.final_delta
     end
     FetchTravels.perform_in(1.minute)
   end
