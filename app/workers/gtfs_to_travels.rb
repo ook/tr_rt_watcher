@@ -133,6 +133,7 @@ class GtfsToTravels
       os.ligne = route.short_name
       os.route = route.long_name
       os.mission = trip.headsign
+      os.direction = '1' == trip.direction_id
       os.stop_id = st.stop_id
       os.num = extract_num(trip.id)
       os.stop_sequence = st.stop_sequence.to_i

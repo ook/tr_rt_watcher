@@ -11,7 +11,8 @@ class FetchTravels
 
   def perform(from: '87381798', to: '87384008')
     setup_worker
-    @tr.next(from: from, to: to)
+    #@tr.next(from: from, to: to)
+    @tr.next(from: from)
     @tr.trains.each do |train|
       t = Travel.add_travel(train: train, stop: from)
       puts t.inspect

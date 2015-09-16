@@ -14,6 +14,7 @@ class TravelsController < ApplicationController
     @at ||= Time.zone.now - 20.minutes
 
     @travels = Travel.where(stop_id: "StopPoint:DUA#{@start_station[0..-2]}")
-                     .where('theorically_enter_at >= ? AND theorically_enter_at <= ?', @at, @at + 1.hour)
+                     .where('theorically_enter_at >= ? AND theorically_enter_at <= ?', @at, @at + 2.hours)
+                     .order(:theorically_enter_at)
   end
 end
