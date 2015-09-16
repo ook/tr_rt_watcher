@@ -1,0 +1,11 @@
+<div>
+  <p>From: <%= @start_station %></p>
+  <p>To: <%= @end_station %></p>
+  <p>At: <%= @at %> (-20min -&gt; +1hour)</p>
+</div>
+<div>
+  <p><%= @travels.count %> travels</p>
+  <%- @travels.each do |travel| -%>
+  <p><%= travel_format(travel) %></p>
+  <%- end -%>
+</div>
