@@ -7,8 +7,7 @@ class GtfsToTravels
 
   GTFS_URL = 'https://ressources.data.sncf.com/api/datasets/1.0/sncf-transilien-gtfs/attachments/export_tn_gtfs_last_zip/'
 
-  #ALL_KNOWN_SHORT_NAMES = %w(A B C D E H J K L N P R T4 U)
-  ALL_KNOWN_SHORT_NAMES = %w(J)
+  ALL_KNOWN_SHORT_NAMES = %w(A B C D E H J K L N P R T4 U)
   DAYS = %w(sunday monday tuesday wednesday thursday friday saturday)
 
   def extract_date(date, time)
