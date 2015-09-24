@@ -178,7 +178,6 @@ class GtfsToTravels
         puts "#{index} - #{inner_index} TRV=#{trv.inspect}"
         travel = Travel.where(stop_id: trv[:stop_id], date_str: trv[:date_str], num: trv[:num]).first
         if !travel
-          binding.pry
           puts "CAN’T FIND THAT TRAVEL to update! #{os.inspect} #{trv.inspect}"
         else
           travel.update_attributes!(trv)
