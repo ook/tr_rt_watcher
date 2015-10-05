@@ -9,7 +9,8 @@ class FetchTravels
     @tr = TransilienRealtime::Base.new(user: @user, pwd: @pwd)
   end
 
-  def perform(from: '87381798', to: '87384008')
+  #def perform(from: '87381798', to: '87384008')
+  def perform(from: '87381798', to: nil)
     setup_worker
     #@tr.next(from: from, to: to)
     @tr.next(from: from)
