@@ -123,8 +123,9 @@ class GtfsToTravels
     
     puts "Building Travels…"
     next_week = Time.now + 9.days
+    max_index = @stop_times.length
     @stop_times.each_with_index do |st, index|
-      puts "#{index} NEXT STOP TIMES:  #{st.inspect} ======================"
+      puts "#{index}/#{max_index} NEXT STOP TIMES:  #{st.inspect} ======================"
       trip  = @trips.find { |t| t.id == st.trip_id }
       route = @routes.find { |r| r.id == trip.route_id }
       next unless route
@@ -137,7 +138,7 @@ class GtfsToTravels
       os.num = extract_num(trip.id)
       os.stop_sequence = st.stop_sequence.to_i
       os.status = 'GTFS:STD'
-      puts "#{index} - Normal service - #{os.inspect}"
+      puts "#{index}/#{max_index} - Normal service - #{os.inspect}"
       Array(@dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
         os.date_str = date_str
         os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
@@ -153,7 +154,7 @@ class GtfsToTravels
           raise 'FUCK' if trv[:theorically_enter_at] > next_week
         end
       end
-      puts "#{index} - Added services - #{os.inspect}"
+      puts "#{index}/#{max_index} - Added services - #{os.inspect}"
       Array(@added_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
         os.status = 'GTFS:ADD'
         os.date_str = date_str
@@ -175,16 +176,16 @@ class GtfsToTravels
         os.date_str = date_str
         os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
         trv  = os.to_h
-        puts "#{index} - #{inner_index} TRV=#{trv.inspect}"
+        puts "#{index}/#{max_index} - #{inner_index} TRV=#{trv.inspect}"
         travel = Travel.where(stop_id: trv[:stop_id], date_str: trv[:date_str], num: trv[:num]).first
         if !travel
           puts "CAN’T FIND THAT TRAVEL to update! #{os.inspect} #{trv.inspect}"
         else
           travel.update_attributes!(trv)
-          puts "#{index} - #{inner_index} Ok"
+          puts "#{index}/#{max_index} - #{inner_index} Ok"
         end
       end
-      puts "#{index} END OF THAT STOP TIME===================="
+      puts "#{index}/#{max_index} END OF THAT STOP TIME===================="
     end
 
 
