@@ -1,9 +1,10 @@
 class Travel < ActiveRecord::Base
+  DATE_STR_FORMAT = '%Y%m%d'
 
   class << self
     def add_travel(train:, stop:)
       stop_id = "StopPoint:DUA#{stop[0..-2]}"
-      date_str = Time.now.strftime('%Y%m%d')
+      date_str = Time.now.strftime(DATE_STR_FORMAT)
       travel  = Travel.where(stop_id: stop_id, num: train.numero, date_str: date_str).first
       unless travel
         travel = new
@@ -17,11 +18,20 @@ class Travel < ActiveRecord::Base
         travel.stop_id = "StopPoint:DUA#{stop[0..-2]}"
         travel.status  = 'FETCH:DISCOVER'
       end
-      travel.times << train.departure_at
+      travel.times << train.departure_at.localtime
       travel.save!
       travel
     end
+
+    def today
+      where(date_str: Time.now.strftime(DATE_STR_FORMAT))
+    end
+
+    def unseen
+      where(times: '{}')
+    end
   end
+
 
   def max_delta
     real_times = times.map { |t| Time.parse(t) }
@@ -31,7 +41,7 @@ class Travel < ActiveRecord::Base
   end
 
   def final_delta
-    first_time = Time.parse(times[0])
+    first_time = Time.parse(theorically_enter_at)
     last_time  = Time.parse(times[-1])
     (last_time - first_time).to_i / 60
   end
