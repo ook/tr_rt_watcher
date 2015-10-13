@@ -30,6 +30,9 @@ class Travel < ActiveRecord::Base
     def unseen
       where(times: '{}')
     end
+    def seen
+      where('times <> ?', '{}')
+    end
   end
 
 
