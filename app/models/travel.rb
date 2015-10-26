@@ -39,15 +39,10 @@ class Travel < ActiveRecord::Base
 
 
   def max_delta
-    real_times = times.map { |t| Time.parse(t) }
-    min = real_times.min
-    max = real_times.max
-    (max - min).to_i / 60
+    times && times.max
   end
 
   def final_delta
-    first_time = Time.parse(theorically_enter_at)
-    last_time  = Time.parse(times[-1])
-    (last_time - first_time).to_i / 60
+    times && times.last
   end
 end
