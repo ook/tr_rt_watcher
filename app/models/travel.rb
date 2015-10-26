@@ -1,6 +1,8 @@
 class Travel < ActiveRecord::Base
   DATE_STR_FORMAT = '%Y%m%d'
 
+  default_scope { order('date_str, theorically_enter_at') }
+
   class << self
     def add_travel(train:, stop:)
       stop_id = "StopPoint:DUA#{stop[0..-2]}"
