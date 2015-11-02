@@ -1,4 +1,14 @@
 class Travel < ActiveRecord::Base
+  GTFS_STD = 'GTFS:STD' # annual plan
+  GTFS_ADD = 'GTFS:ADD' # added to annual plan
+  GTFS_DEL = 'GTFS:DEL' # removed from annual plan
+  FETCH_DISCOVER = 'FETCH:DISCOVER'
+  FETCH_CANCELED = 'FETCH:CANCELED'
+  FETCH_DELAYED  = 'FETCH:DELAYED'
+
+  STATUSES = [GTFS_STD, GTFS_ADD, GTFS_DEL, FETCH_DISCOVER, FETCH_CANCELED]
+
+
   DATE_STR_FORMAT = '%Y%m%d'
 
   default_scope { order('date_str, theorically_enter_at') }
@@ -18,7 +28,14 @@ class Travel < ActiveRecord::Base
         travel.date_str = date_str
         travel.stop_sequence = -1
         travel.stop_id = "StopPoint:DUA#{stop[0..-2]}"
-        travel.status  = 'FETCH:DISCOVER'
+        travel.status  = case travel.state
+        when 'cancelled'
+          FETCH_CANCELED
+        when 'late'
+          FETCH_DELAYED
+        else
+          FETCH_DISCOVER
+        end
       end
       travel.times << train.departure_at.localtime
       travel.save!

@@ -50,3 +50,10 @@ group :development, :test do
   gem 'spring'
 end
 
+group :test do
+  gem 'rspec'
+  gem 'rspec-rails'
+  gem 'guard-rspec'
+  gem 'factory_girl'
+end
+

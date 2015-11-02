@@ -137,7 +137,7 @@ class GtfsToTravels
       os.stop_id = st.stop_id
       os.num = extract_num(trip.id)
       os.stop_sequence = st.stop_sequence.to_i
-      os.status = 'GTFS:STD'
+      os.status = Travel::GTFS_STD
       puts "#{index}/#{max_index} - Normal service - #{os.inspect}"
       Array(@dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
         os.date_str = date_str
@@ -156,7 +156,7 @@ class GtfsToTravels
       end
       puts "#{index}/#{max_index} - Added services - #{os.inspect}"
       Array(@added_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
-        os.status = 'GTFS:ADD'
+        os.status = Travel::GTFS_ADD
         os.date_str = date_str
         os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
         trv  = os.to_h
@@ -172,7 +172,7 @@ class GtfsToTravels
         puts
       end
       Array(@removed_dates_by_service[trip.service_id]).each_with_index do |date_str, inner_index|
-        os.status = 'GTFS:DEL'
+        os.status = Travel::GTFS_DEL
         os.date_str = date_str
         os.theorically_enter_at = extract_date(Date.parse(date_str), st.arrival_time)
         trv  = os.to_h
