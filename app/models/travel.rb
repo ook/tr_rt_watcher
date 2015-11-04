@@ -15,7 +15,6 @@ class Travel < ActiveRecord::Base
 
   class << self
     def add_travel(train:, stop:)
-      logger.info("stop=#{stop} train=#{train.inspect}")
       stop_id = "StopPoint:DUA#{stop[0..-2]}"
       date_str = Time.now.strftime(DATE_STR_FORMAT)
       travel  = Travel.where(stop_id: stop_id, num: train.numero, date_str: date_str).first

@@ -24,6 +24,7 @@ class FetchTravels
     #@tr.next(from: from, to: to)
     @tr.next(from: from)
     @tr.trains.each do |train|
+      logger.info("stop=#{from} train=#{train.inspect}")
       t = Travel.add_travel(train: train, stop: from)
       puts t.inspect
       #puts t.max_delta
