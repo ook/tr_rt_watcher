@@ -28,7 +28,7 @@ class Travel < ActiveRecord::Base
         travel.date_str = date_str
         travel.stop_sequence = -1
         travel.stop_id = "StopPoint:DUA#{stop[0..-2]}"
-        travel.status  = case travel.state
+        travel.status  = case train.state
         when 'cancelled'
           FETCH_CANCELED
         when 'late'
