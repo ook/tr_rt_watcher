@@ -6,7 +6,7 @@ class Travel < ActiveRecord::Base
   FETCH_CANCELED = 'FETCH:CANCELED'
   FETCH_DELAYED  = 'FETCH:DELAYED'
 
-  STATUSES = [GTFS_STD, GTFS_ADD, GTFS_DEL, FETCH_DISCOVER, FETCH_CANCELED]
+  STATUSES = [GTFS_STD, GTFS_ADD, GTFS_DEL, FETCH_DISCOVER, FETCH_CANCELED, FETCH_DELAYED]
 
 
   DATE_STR_FORMAT = '%Y%m%d'
@@ -44,6 +44,18 @@ class Travel < ActiveRecord::Base
 
     def today
       where(date_str: Time.now.strftime(DATE_STR_FORMAT))
+    end
+
+    def yesterday
+      where(date_str: (Time.now - 1.day).strftime(DATE_STR_FORMAT))
+    end
+
+    def cancelled
+      where(status: FETCH_CANCELED)
+    end
+
+    def delayed
+      where(status: FETCH_DELAYED)
     end
 
     def unseen
