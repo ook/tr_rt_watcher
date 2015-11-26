@@ -21,7 +21,7 @@ class Travel < ActiveRecord::Base
       unless travel
         travel = new
         travel.num     = train.numero
-        travel.mission = train.mission
+        travel.mission = train.mission || '----'
         travel.term    = train.terminus
         # how to guess the direction, pattern matching?
 
