@@ -18,18 +18,19 @@ class FetchTravels
     @to = to
     setup_worker_key([@from, @to])
     if :must_stop == track_in_redis # End tje worker right now
-      logger.warn("Discover that we MUST STOP. Certainly a duplicated request.")
+      logger.warn("stop=#{from} to=#{to} Discover that we MUST STOP. Certainly a duplicated request.")
       return true
     end
     #@tr.next(from: from, to: to)
     @tr.next(from: from)
     @tr.trains.each do |train|
-      logger.info("stop=#{from} train=#{train.inspect}")
+      logger.info("stop=#{from} to=#{to} train=#{train.inspect}")
       t = Travel.add_travel(train: train, stop: from)
       puts t.inspect
       #puts t.max_delta
       #puts t.final_delta
     end
-    FetchTravels.perform_in(1.minute)
+    logger.info("stop=#{from} to=#{to} Scheduled back in 1 minute")
+    FetchTravels.perform_in(1.minute, from, to)
   end
 end
