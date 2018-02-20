@@ -23,7 +23,7 @@ gem 'sdoc', '~> 0.4.0', group: :doc
 # Sidekiq and my workers dependency
 gem 'redis', '~> 3.2.1'
 
-gem 'transilien_realtime', '~> 0.4.2'
+gem 'transilien_realtime', '~> 0.5'
 gem 'sidekiq', '~> 3.4.1'
 gem 'gtfs', '~> 0.2.4'
 
